@@ -1,7 +1,7 @@
 # Previsión por municipio — AEMET
 
 Buscador de municipios de España con previsión del día siguiente (AEMET OpenData).
-Backend Spring Boot + frontend Angular, organizados en capas estilo hexagonal.
+Backend Spring Boot + frontend Angular, separados en capas.
 
 ## API key de AEMET (2 min)
 
@@ -51,39 +51,33 @@ temperaturas horarias que da AEMET (o (máx+mín)/2 si no hay desglose); tramos 
 
 ## Docker
 
+Sin instalar Java ni Node, solo con Docker y la key:
+
 ```bash
-# Construir
-docker build -t TU_USUARIO/aemet-backend ./backend
-docker build -t TU_USUARIO/aemet-frontend ./frontend
-# Probar en local (construye las imágenes y arranca todo)
 AEMET_API_KEY=xxx docker compose up --build
 # front http://localhost:4200, back http://localhost:8080
-# Publicar en Docker Hub (requiere docker login)
-docker tag aemet-meteo-app-backend TU_USUARIO/aemet-backend:latest
-docker tag aemet-meteo-app-frontend TU_USUARIO/aemet-frontend:latest
-docker push TU_USUARIO/aemet-backend:latest
-docker push TU_USUARIO/aemet-frontend:latest
 ```
 
-Mira el nombre exacto con `docker images` y sustituye `TU_USUARIO` por tu usuario de Docker Hub.
+Las imágenes también están publicadas en Docker Hub (ver enlaces de la entrega) por si
+se quieren usar directamente sin construir.
 
-## Estructura (hexagonal)
+## Cómo está organizado
 
 ```
 backend/.../domain        modelo (Municipio, PrevisionDia, UnidadTemperatura) + puertos
 backend/.../application   casos de uso (MunicipioService, PrevisionService)
 backend/.../infrastructure
-  in/rest                 controllers + filtro de rate limit + errores propios
-  out/aemet               único que conoce AEMET (flujo en 2 pasos)
+  in/rest                 controllers, rate limit y errores
+  out/aemet               acceso a AEMET (flujo en 2 pasos)
 frontend/src/app
-  core                    modelos + icono/condición
-  infrastructure          llamadas al backend (HttpClient solo aquí)
-  presentation            BuscadorComponent + iconos SVG propios
+  core                    modelos e iconos
+  infrastructure          acceso al backend
+  presentation            buscador
 ```
 
 Rendimiento: el maestro de municipios (~3 MB) se descarga una vez y se filtra en
 memoria; cada previsión se cachea 3 h con lock por municipio; rate limit 60/min por IP;
-si AEMET falla, 502 con mensaje y se mantiene lo cacheado. Detalle en `PREGUNTAS.md`.
+si AEMET falla, 502 con mensaje y se mantiene lo cacheado (más detalle en las respuestas enviadas con la entrega).
 
 ## Tests y CI
 
