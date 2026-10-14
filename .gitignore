@@ -1,0 +1,6 @@
+.env
+.idea/
+backend/src/main/resources/application-local.properties
+frontend/dist/
+**/node_modules/
+**/target/
