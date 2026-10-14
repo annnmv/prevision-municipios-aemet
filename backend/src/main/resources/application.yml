@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: meteo-backend
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+
+aemet:
+  base-url: https://opendata.aemet.es/opendata
+  api-key: ${AEMET_API_KEY:TU_API_KEY_AQUI}
+  # La predicción diaria cambia pocas veces al día
+  prevision-ttl: PT3H
+
+ratelimit:
+  requests-per-minute: 60
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
