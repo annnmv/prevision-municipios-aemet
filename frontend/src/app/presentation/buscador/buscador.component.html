@@ -1,0 +1,75 @@
+<div class="page">
+  <header class="topbar">
+    <div class="brand">
+      <span class="live"><span class="dot"></span>En directo</span>
+      <h1>Previsión por municipio</h1>
+      <p class="sub">Datos de AEMET OpenData · previsión del día siguiente</p>
+    </div>
+  </header>
+
+  <section class="form" aria-label="Búsqueda">
+    <div class="campo muni">
+      <label for="muni">Municipio</label>
+      <input id="muni" [ngModel]="texto()" (ngModelChange)="alTeclear($event)"
+             (focus)="sugerencias().length && listaAbierta.set(true)"
+             (blur)="listaAbierta.set(false)"
+             placeholder="Escribe al menos 2 letras… (ej: Madrid)" autocomplete="off" />
+      @if (buscando()) {
+        <p class="ayuda">Buscando…</p>
+      }
+      @if (listaAbierta() && sugerencias().length > 0) {
+        <ul class="lista" role="listbox">
+          @for (m of sugerencias(); track m.codigo) {
+            <li role="option" (mousedown)="elegir(m)"><strong>{{ m.nombre }}</strong><span>{{ m.codigo }}</span></li>
+          }
+        </ul>
+      }
+    </div>
+    <div class="campo">
+      <label for="unidad">Unidad</label>
+      <select id="unidad" [ngModel]="unidad()" (ngModelChange)="alCambiarUnidad($event)">
+        <option value="">Por defecto (ºC)</option>
+        <option value="G_CEL">Grados Celsius</option>
+        <option value="G_FAH">Grados Fahrenheit</option>
+      </select>
+    </div>
+    <div class="campo boton">
+      <button type="button" class="ghost" (click)="limpiar()">Limpiar</button>
+    </div>
+  </section>
+
+  @if (error()) {
+    <div class="banner error" role="alert">{{ error() }}</div>
+  }
+
+  @if (cargandoPrevision()) {
+    <div class="skeleton" aria-hidden="true"></div>
+  } @else if (prevision(); as p) {
+    <section class="resultado" aria-label="Previsión">
+      <app-weather-icon class="icono" [tipo]="condicion()" />
+      <div class="principal">
+        <p class="ciudad">{{ seleccionado()?.nombre }}</p>
+        <p class="media">{{ p.mediaTemperatura }}<span>{{ simboloUnidad() }}</span></p>
+        <p class="detalle">Temperatura media de mañana · {{ p.unidadTemperatura === 'G_FAH' ? 'Fahrenheit' : 'Celsius' }}</p>
+      </div>
+      <ul class="tramos">
+        @for (t of p.probPrecipitacion; track t.periodo) {
+          <li>
+            <span class="periodo">{{ t.periodo }}</span>
+            <span class="barra"><span class="relleno" [style.width.%]="t.probabilidad"></span></span>
+            <strong>{{ t.probabilidad }}%</strong>
+          </li>
+        }
+      </ul>
+      <p class="nota">Probabilidad de precipitación por tramos horarios.</p>
+    </section>
+  } @else if (seleccionado()) {
+    <p class="ayuda">Elige un municipio de la lista para ver su previsión.</p>
+  } @else {
+    <p class="ayuda">Busca un municipio arriba: al elegirlo (o cambiar la unidad) se actualiza solo.</p>
+  }
+
+  <footer>
+    Datos: AEMET OpenData vía backend propio. Se recuerda tu último municipio en este navegador.
+  </footer>
+</div>
