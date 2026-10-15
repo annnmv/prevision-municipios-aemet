@@ -77,4 +77,30 @@ class PrevisionServiceTest {
         assertThat(r.probPrecipitacion().get(1).probabilidad()).isZero();
         assertThat(r.unidadTemperatura()).isEqualTo(UnidadTemperatura.G_CEL);
     }
+
+    @Test
+    void sinDesgloseHorario_mediaDeMaximaYMinima() throws Exception {
+        String manana = LocalDate.now(ZONA).plusDays(1).toString();
+        String json = "[{\"nombre\":\"Madrid\",\"prediccion\":{\"dia\":["
+                + "{\"fecha\":\"" + manana + "T00:00:00\","
+                + "\"probPrecipitacion\":[],"
+                + "\"temperatura\":{\"dato\":[],\"maxima\":30,\"minima\":20}}]}}]";
+        when(port.prediccionDiaria("28079")).thenReturn(new ObjectMapper().readTree(json));
+
+        PrevisionDia r = new PrevisionService(port, Duration.ofHours(3))
+                .previsionDiaSiguiente("28079", UnidadTemperatura.G_CEL);
+
+        assertThat(r.mediaTemperatura()).isCloseTo(25.0, within(0.01));
+    }
+
+    @Test
+    void segundaPeticion_reutilizaCacheSinLlamar() throws Exception {
+        when(port.prediccionDiaria("28079")).thenReturn(muestra(20, 20, 0, 0));
+        var service = new PrevisionService(port, Duration.ofHours(3));
+
+        service.previsionDiaSiguiente("28079", UnidadTemperatura.G_CEL);
+        service.previsionDiaSiguiente("28079", UnidadTemperatura.G_FAH);
+
+        org.mockito.Mockito.verify(port, org.mockito.Mockito.times(1)).prediccionDiaria("28079");
+    }
 }
