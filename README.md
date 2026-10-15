@@ -58,8 +58,13 @@ AEMET_API_KEY=xxx docker compose up --build
 # front http://localhost:4200, back http://localhost:8080
 ```
 
-Las imágenes también están publicadas en Docker Hub (ver enlaces de la entrega) por si
-se quieren usar directamente sin construir.
+Las imágenes también están publicadas en Docker Hub por si
+se quieren usar directamente sin construir:
+
+```bash
+docker pull annnmv/aemet-backend:latest
+docker pull annnmv/aemet-frontend:latest
+```
 
 ## Cómo está organizado
 
